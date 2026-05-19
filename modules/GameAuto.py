@@ -40,22 +40,29 @@ class GameAuto:
 			if not self.__detector:
 				return False
 
-			flag = self.__detector.find_upgade_shop_elements()
+			'''
+			while True:
 
-			if not flag:
-				print("Khong tim thay cac elements trong shop")
-				return False 
+				flag = self.__detector.find_upgrade_shop_elements()
 
-			for _ in range(10):
-				# Default x, y for first element position
-				self.__adb.click(DEFAULT_FIRST_ELEMENT_X, DEFAULT_FIRST_ELEMENT_Y)
-				time.sleep(0.1)
+				if not flag:
+					print("Khong tim thay cac elements trong shop")
+					break
+
+				for _ in range(10):
+					# Default x, y for first element position
+					self.__adb.click(DEFAULT_FIRST_ELEMENT_X, DEFAULT_FIRST_ELEMENT_Y)
 
 			# Default x, y for closing upgrade shop
 			self.__adb.click(DEFAULT_CLOSING_UPGRADE_X, DEFAULT_CLOSING_UPGRADE_Y)
-			time.sleep(0.1)
-			self.click_upgrade_shop()
 
+			'''
+			if self.__detector.find_upgrade_shop_elements():
+				for _ in range(10):
+					# Default x, y for first element position
+					self.__adb.click(DEFAULT_FIRST_ELEMENT_X, DEFAULT_FIRST_ELEMENT_Y)
+				# Default x, y for closing upgrade shop
+				self.__adb.click(DEFAULT_CLOSING_UPGRADE_X, DEFAULT_CLOSING_UPGRADE_Y)
 		except Exception as e:
 			print("Error GameAuto - click_upgrade_shop:", e)
 
@@ -64,17 +71,20 @@ class GameAuto:
 			if not self.__detector:
 				return False
 
-			points = self.__detector.find_upgrade_shop()
+			flag = self.__detector.find_upgrade_shop()
 
-			if not points:
+			if not flag:
 				print("Khong tim thay nut upgrade shop")
 				return False
 
+			self.__adb.click(DEFAULT_UPGRADE_SHOP_X, DEFAULT_UPGRADE_SHOP_Y)
+			print("Da tim thay mui ten upgrade shop")
+			'''
 			for x,y in points:
 				self.__adb.click(x, y)
 				print("Da tim thay mui ten upgrade shop")
 				break
-
+			'''
 			self.click_upgrade_shop()
 
 		except Exception as e:
@@ -105,21 +115,20 @@ class GameAuto:
 			if not self.__detector:
 				return False
 
-			points = self.__detector.find_button_coin()
+			while True:
+				points = self.__detector.find_button_coin()
 
-			if not points:
-				print("Khong tim thay button coin")
-				# Click outside point to stop swiping
-				self.__adb.click(DEFAULT_OUTSIDE_X, DEFAULT_OUTSIDE_Y)
-				print("outside:", DEFAULT_OUTSIDE_X, DEFAULT_OUTSIDE_Y)
-				return False
+				if not points:
+					print("Khong tim thay button coin")
+					# Click outside point to stop swiping
+					self.__adb.click(DEFAULT_OUTSIDE_X, DEFAULT_OUTSIDE_Y)
+					print("outside:", DEFAULT_OUTSIDE_X, DEFAULT_OUTSIDE_Y)
+					return False
 
-			for x, y in points:
-				self.__adb.click(x, y)
-				self.__adb.swipe(x, y, x, y)
-				break
-
-			self.swipe_button_coin()
+				for x, y in points:
+					self.__adb.click(x, y)
+					self.__adb.swipe(x, y, x, y)
+					break
 
 		except Exception as e:
 			print("Error GameAuto - swipe_button_coin:", e)
@@ -142,16 +151,27 @@ class GameAuto:
 			for x, y in points:
 				self.__adb.click(x, y)
 				print(f'Da click vao vi tri {x} {y}')
-				#self.swipe_button_coin()
-				break
-				time.sleep(0.1)
+				self.swipe_button_coin()
+
 		except Exception as e:
 			print("Error GameAuto - handle_upgrade_food:", e)
 
 	def click_open_new_map(self):
 
-		self.__adb.click(DEFAULT_OPEN_BTN_X, DEFAULT_OPEN_BTN_Y)
+		try:
+			if not self.__detector:
+				return False
 
+			flag = self.__detector.find_open_button()
+
+			if not flag:
+				print("Khong tim thay nut open")
+				return False
+
+			self.__adb.click(DEFAULT_OPEN_BTN_X, DEFAULT_OPEN_BTN_Y)
+
+		except Exception as e:
+			print("Error GameAuto - click_open_new_map:", e)
 
 	def handle_nothing_upgrade(self):
 
@@ -162,13 +182,24 @@ class GameAuto:
 
 				print("Phat hien khong con gi de upgrade")
 
-				self.click_finish_button()
+				#self.click_boxes()
+				self.__adb.click(DEFAULT_OUTSIDE_X, DEFAULT_OUTSIDE_Y)
+				print("outside:", DEFAULT_OUTSIDE_X, DEFAULT_OUTSIDE_Y)
 
 				x = self.__adb.screen_center_x
 				y = self.__adb.screen_center_y
 
 				# SWIPE UP OR DOWN (initially swipe DOWN for the first time)
 				self.__adb.swipe(x, y, x, y + self.__adb.distanceToSwipe, duration=0.5)
+
+				flag = self.__detector.check_nothing_upgrade()
+
+				if flag:
+					return
+
+				self.click_finish_button()
+				self.click_open_new_map()
+				self.click_boxes()
 
 				checked = False
 				if self.__adb.distanceToSwipe < 0:
@@ -199,9 +230,6 @@ class GameAuto:
 
 					self.crop_swipe()
 
-				
-				flag = self.__detector.check_nothing_upgrade()
-
 		except Exception as e:
 			print("Error GameAuto - handle_nothing_upgrade:", e)
 
@@ -211,23 +239,15 @@ class GameAuto:
 			if not self.__detector:
 				return False
 
-			points = self.__detector.find_finish_button()
+			flag = self.__detector.find_finish_button()
 
-			if not points:
+			if not flag:
 				print("Khong tim thay nut finish")
 				return False
 
-			for x, y in points:
-				self.__adb.click(x, y)
-				time.sleep(1)
-				# Default x,y finish button
-				print("Da click nut finish")
-				self.__adb.click(DEFAULT_FINISH_BTN_X, DEFAULT_FINISH_BTN_Y)
-				time.sleep(8)
-				self.__adb.click(DEFAULT_OPEN_BTN_X, DEFAULT_OPEN_BTN_Y)
-				self.click_open_new_map()
-				time.sleep(1)
-				return True
+			self.__adb.click(DEFAULT_FINISH_BTN_X, DEFAULT_FINISH_BTN_Y)
+			time.sleep(1)
+			self.__adb.click(DEFAULT_RENOVATE_X, DEFAULT_RENOVATE_Y)
 
 		except Exception as e:
 			print("Error GameAuto - click_finish_button:", e)
@@ -275,14 +295,13 @@ class GameAuto:
 				return False
 
 			self.crop_swipe()
-
+			print("Auto started!")
 			while(True):
-				print("Auto started!")
+				print("New loop")
 				self.handle_upgrade_food()
-				self.swipe_button_coin()
 				self.click_boxes()
+				self.swipe_button_coin()
 				self.handle_upgrade_shop()
-
 				self.handle_nothing_upgrade()
 
 				time.sleep(0.5)

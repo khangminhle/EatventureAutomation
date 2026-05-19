@@ -1,6 +1,7 @@
 #from device import Device
 from modules.GameAuto import GameAuto
 from modules.ADB import ADBController
+from modules.GameDetector import GameDetector
 #scrcpy -S --window-title "eatventure_screen" --max-fps 30
 
 if __name__ == '__main__':
@@ -21,4 +22,5 @@ if __name__ == '__main__':
     auto = GameAuto()
 
     #auto.crop_swipe()
-    auto.start()   
+    auto.start()
+

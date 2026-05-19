@@ -12,21 +12,26 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 	SO, WE DON'T NEED TO UPDATE WHEN USING
 	OTHER DEVICES WITH DIFFERENT RESOLUTIONS
 '''
+
 # Default position of finish button
-DEFAULT_FINISH_BTN_X = 550
-DEFAULT_FINISH_BTN_Y = 1650
+DEFAULT_FINISH_BTN_X = 113
+DEFAULT_FINISH_BTN_Y = 2200
+
+# Default position of renovate button
+DEFAULT_RENOVATE_X = 550
+DEFAULT_RENOVATE_Y = 1650
 
 # Default position of finish button
 DEFAULT_OPEN_BTN_X = 540
 DEFAULT_OPEN_BTN_Y = 1400
 
 # Default position of upgrade shop
-DEFAULT_UPGRADE_SHOP_X = 0
-DEFAULT_UPGRADE_SHOP_Y = 0
+DEFAULT_UPGRADE_SHOP_X = 977
+DEFAULT_UPGRADE_SHOP_Y = 2200
 
 # Default positon of Ads
-DEFAULT_ADS_X = 0
-DEFAULT_ADS_Y = 0
+DEFAULT_ADS_X = 545
+DEFAULT_ADS_Y = 2200
 
 # Default outside position to close upgrade shop
 DEFAULT_OUTSIDE_X = 550
