@@ -15,8 +15,10 @@ if __name__ == '__main__':
 
     #adb.connect()
 
-    #adb.save_screenshot()
+    #adb.crop_screen((10, 270, 90, 300))
+
 
     auto = GameAuto()
 
+    #auto.crop_swipe()
     auto.start()   
