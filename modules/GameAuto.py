@@ -1,6 +1,8 @@
+import time
+
 from .ADB import ADBController
 from .GameDetector import GameDetector
-import time
+from .Constants import *
 
 class GameAuto:
 
@@ -8,6 +10,10 @@ class GameAuto:
 		try:
 			self.__adb = None
 			self.__detector = None
+			self.__map = "NORMAL"
+
+			self.__max_swipe_turn = 2
+			self.__swipe_turn = 0
 
 		except Exception as e:
 			print("Error GameAuto():", e)
@@ -16,12 +22,18 @@ class GameAuto:
 		try:
 			self.__adb = ADBController()
 			if not self.__adb.isReady():
-				self.__adb.connect()
+				if not self.__adb.connect():
+					return False
+
 				self.__adb.config()
 
-			self.__detector = GameDetector(self.__adb)
+			self.__detector = GameDetector(self.__adb, self.__map)
+
+			return True
+
 		except Exception as e:
 			print("Erorr GameAuto - config():", e)
+			return False
 
 	def click_upgrade_shop(self):
 		try:
@@ -36,11 +48,11 @@ class GameAuto:
 
 			for _ in range(10):
 				# Default x, y for first element position
-				self.__adb.click(850, 950)
+				self.__adb.click(DEFAULT_FIRST_ELEMENT_X, DEFAULT_FIRST_ELEMENT_Y)
 				time.sleep(0.1)
 
 			# Default x, y for closing upgrade shop
-			self.__adb.click(920, 800)
+			self.__adb.click(DEFAULT_CLOSING_UPGRADE_X, DEFAULT_CLOSING_UPGRADE_Y)
 			time.sleep(0.1)
 			self.click_upgrade_shop()
 
@@ -98,7 +110,7 @@ class GameAuto:
 			if not points:
 				print("Khong tim thay button coin")
 				# Click outside point to stop swiping
-				self.__adb.click(550, 400) 
+				self.__adb.click(DEFAULT_OUTSIDE_X, DEFAULT_OUTSIDE_Y) 
 				return False
 
 			for x, y in points:
@@ -134,25 +146,112 @@ class GameAuto:
 
 	def handle_nothing_upgrade(self):
 
-		flag = self.__detector.check_nothing_upgrade()
-
-		while not flag:
-
-			print("Phat hien khong con gi de upgrade")
-
-			x = self.__adb.screen_center_x
-			y = self.__adb.screen_center_y
-
-			# VIET HAM XU LY SWIPE LEN XUONG, TIM UPPER VA LOWER BOUND
-			self.__adb.swipe(x, y, x, y + self.__adb.distanceToSwipe, duration=0.5)
-			# VIET THEM HAM XU LY
+		try:
 			flag = self.__detector.check_nothing_upgrade()
 
+			while not flag:
+
+				print("Phat hien khong con gi de upgrade")
+
+				#self.click_finish_button()
+
+				x = self.__adb.screen_center_x
+				y = self.__adb.screen_center_y
+
+				# SWIPE UP OR DOWN (initially swipe DOWN for the first time)
+				self.__adb.swipe(x, y, x, y + self.__adb.distanceToSwipe, duration=0.5)
+
+				checked = False
+				if self.__adb.distanceToSwipe < 0:
+					print("SWIPE DOWN")
+					# check bottom region crop
+					checked = self.__detector.check_max_swipe()
+				else:
+					print("SWIPE UP")
+					# check top region crop
+					checked = self.__detector.check_max_swipe("top")
+
+				if checked:
+					self.__swipe_turn += 1
+					# Reverse swipe UP to DOWN and vice versa
+					self.__adb.distanceToSwipe = self.__adb.distanceToSwipe * -1
+
+					# Check if we finish 1 round for swipping DOWN and UP
+					if self.__swipe_turn == self.__max_swipe_turn:
+						print("DA XONG 1 TURN SWIPE")
+
+						# Check if the game is finished ?
+						self.click_finish_button()
+						#self.click_open_button()
+				else:
+					self.crop_swipe()
+
+				
+				flag = self.__detector.check_nothing_upgrade()
+
+		except Exception as e:
+			print("Error GameAuto - handle_nothing_upgrade:", e)
+
+
+	def click_finish_button(self):
+		try:
+			if not self.__detector:
+				return False
+
+			points = self.__detector.find_finish_button()
+
+			if not points:
+				print("Khong tim thay nut finish")
+				return False
+
+			for x, y in points:
+				self.__adb.click(x, y)
+				time.sleep(0.1)
+				# Default x,y finish button
+				self.__adb.click(DEFAULT_FINISH_BTN_X, DEFAULT_FINISH_BTN_Y)
+				time.sleep(8)
+				#self.__adb.click(550, 1650)
+				print("Da click nut finish")
+				break
+
+		except Exception as e:
+			print("Error GameAuto - click_finish_button:", e)
+
+	def crop_swipe(self):
+		try:
+			# Top region
+			left = 10 * self.__adb.scale_x
+			top = 270 * self.__adb.scale_y
+			right = 90 * self.__adb.scale_x
+			bottom = 300 * self.__adb.scale_y
+
+			# Bottom region
+			new_top = 2080 * self.__adb.scale_x
+			new_bottom = 2110 * self.__adb.scale_y
+
+			screenshot = self.__adb.screenshot(default="CORE")
+
+			cropped_img = screenshot.crop((left, top, right, bottom))
+
+			cropped_img.save("check_swipe.png")
+
+			cropped_img = screenshot.crop((left, new_top, right, new_bottom))
+
+			cropped_img.save("check_swipe_bottom.png")
+
+		except Exception as e:
+			print("Error GameAuto - crop_swipe:", e)
+
 	def start(self):
-		# SET UP CONFIG
-		self.config()
 
 		try:
+			# SET UP CONFIG
+			if not self.config():
+				print("Khong the start auto")
+				return False
+
+			self.crop_swipe()
+
 			while(True):
 				print("Auto started!")
 				self.handle_upgrade_food()
@@ -162,6 +261,7 @@ class GameAuto:
 				self.handle_nothing_upgrade()
 
 				time.sleep(0.5)
+
 		except KeyboardInterrupt:
 			print("Auto stopped!")
 

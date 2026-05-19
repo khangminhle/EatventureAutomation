@@ -4,4 +4,38 @@ DEFAULT_TEMPLATE_WIDTH = 1080
 DEFAULT_TEMPLATE_HEIGHT = 2340
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-print(BASE_DIR)
+
+'''
+	BELOW POSITIONS:
+	1. BASED ON 1080 X 2340 RESOLUTION
+	2. BUT THEY ARE SCALED IN ADB CONTROLLER
+	SO, WE DON'T NEED TO UPDATE WHEN USING
+	OTHER DEVICES WITH DIFFERENT RESOLUTIONS
+
+
+'''
+# Default position of finish button
+DEFAULT_FINISH_BTN_X = 550
+DEFAULT_FINISH_BTN_Y = 1650
+
+# Default position of upgrade shop
+DEFAULT_UPGRADE_SHOP_X = 0
+DEFAULT_UPGRADE_SHOP_Y = 0
+
+# Default positon of Ads
+DEFAULT_ADS_X = 0
+DEFAULT_ADS_Y = 0
+
+# Default outside position to close upgrade shop
+DEFAULT_OUTSIDE_X = 550
+DEFAULT_OUTSIDE_Y = 400
+
+# Default position of first element in upgrade shop
+
+DEFAULT_FIRST_ELEMENT_X = 850
+DEFAULT_FIRST_ELEMENT_Y = 950
+
+# Default position for closing upgrade shop
+
+DEFAULT_CLOSING_UPGRADE_X = 920
+DEFAULT_CLOSING_UPGRADE_Y = 800
