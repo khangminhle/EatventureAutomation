@@ -54,22 +54,24 @@ class GameDetector:
             print("Not connected to ADB yet")
             return None
 
-        # SCREENSHOT
-        img = self.__adb.screenshot(mode=mode)
+        try:
+            # SCREENSHOT
+            img = self.__adb.screenshot(mode=mode)
 
-        # TEMPLATE
-        template_path = os.path.join(BASE_DIR, *template_paths)
+            # TEMPLATE
+            template_path = os.path.join(BASE_DIR, *template_paths)
 
-        if mode == "GRAY":
-            template = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
-        else:
-            if mode == "BGR":
-                template = cv2.imread(template_path)
+            if mode == "GRAY":
+                template = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
+            else:
+                if mode == "BGR":
+                    template = cv2.imread(template_path)
 
-        return find_points_match_template(img, template, **kwargs)
+            return find_points_match_template(img, template, **kwargs)
 
-
-
+        except Exception as e:
+            print("Error GameDetector - _match_template_helper:", e)
+            return None
 
     def find_upgrade_food(self):
 
@@ -78,26 +80,10 @@ class GameDetector:
         if points is None:
             return []
 
-        return [(x, y+20) for x, y in points if self._check_valid_points(x, y+20)]
-
-
-        '''
-        if not self.__adb:
-            print("Not connected to ADB yet")
-            return
-
-        img = self.__adb.screenshot(mode="GRAY")
-        template_path = os.path.join(BASE_DIR, 'templates', 'button_test.png')
-        template = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
-        template = resize_template(template, self.__adb.scale_x, self.__adb.scale_y)
-        points = find_points_match_template(img, template)
-        #print('Ti le:', self.__adb.scale_x, self.__adb.scale_y)
+        if isinstance(points, bool):
+            return []
 
         return [(x, y+20) for x, y in points if self._check_valid_points(x, y+20)]
-
-        # Loại bỏ các điểm vượt giới hạn Y
-        #return [(x, y + 20) for x, y in points if y + 20 < self.__adb.upper_bound_y]
-        '''
 
     def find_button_coin(self):
 
@@ -110,91 +96,88 @@ class GameDetector:
         if points is None:
             return []
 
+        if isinstance(points, bool):
+            return []
+
         return points
 
-        '''
-        if not self.__adb:
-            print("Not connected to ADB yet")
-            return
-
-        img = self.__adb.screenshot(mode="GRAY")
-        template_path = os.path.join(BASE_DIR, 'templates', 'button_coin.png')
-        if self.__map == "POTION":
-            template_path = os.path.join(BASE_DIR, 'templates', 'coin_potion_ingredients.png')
-        template = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
-        template = resize_template(template, self.__adb.scale_x, self.__adb.scale_y)
-        return find_points_match_template(img, template)
-        '''
     def find_boxes(self):
-        if not self.__adb:
-            print("Not connected to ADB yet")
-            return
-        img = self.__adb.screenshot(mode="GRAY")
+
         template_path = os.path.join(BASE_DIR, 'templates', 'boxes' , '*.png')
         templates = glob.glob(template_path)
 
         for tp in templates:
-            template = cv2.imread(tp, cv2.IMREAD_GRAYSCALE)
-            template = resize_template(template, self.__adb.scale_x, self.__adb.scale_y)
-            points = find_points_match_template(img, template)
+            print(tp)
+            points = self._match_template_helper([tp])
 
+            print("boxes:", points)
+
+            if points is None:
+                return []
+
+            if isinstance(points, bool):
+                return []
+            
             if len(points) > 0:
-                return [(x, y) for x, y in points if self._check_valid_points(x, y)]
+                return points#return [(x, y) for x, y in points if self._check_valid_points(x, y)]
+
+        return []
 
     def find_upgrade_shop(self):
 
-        if not self.__adb:
-            print("Not connected to ADB yet")
-            return
+        flag = self._match_template_helper(['templates', 'upgrade_button.png'], mode="BGR", check=True)
 
-        img = self.__adb.screenshot(mode="BGR")
-        template_path = os.path.join(BASE_DIR, 'templates', 'upgrade_button.png')
-        template = cv2.imread(template_path)
-        template = resize_template(template, self.__adb.scale_x, self.__adb.scale_y)
+        if flag is None:
+            return False
 
-        return find_points_match_template(img, template, check=True)
+        if isinstance(flag, bool):
+            return flag
+
+        return False
 
     def find_upgrade_shop_elements(self):
 
-        if not self.__adb:
-            print("Not connected to ADB yet")
-            return
-
-        img = self.__adb.screenshot(mode="BGR")
-        template_path = os.path.join(BASE_DIR, 'templates', 'coinshop.png')
         if self.__map == "POTION":
-            template_path = os.path.join(BASE_DIR, 'templates', 'coin_potion_shop.png')
-        template = cv2.imread(template_path)
-        template = resize_template(template, self.__adb.scale_x, self.__adb.scale_y)
+            template_path = ['templates', 'coin_potion_shop.png']
+        else:
+            if self.__map == "NORMAL":
+                template_path = ['templates', 'coinshop.png']
 
-        return find_points_match_template(img, template, threshold=0.9, check=True)
+        flag = self._match_template_helper(template_path, mode="BGR", threshold=0.9, check=True)
+
+        if flag is None:
+            return False
+
+        if isinstance(flag, bool):
+            return flag
+
+        return False
 
 
     def find_open_button(self):
-        if not self.__adb:
-            print("Not connected to ADB yet")
-            return
+        
+        flag = self._match_template_helper(['templates', 'open_button.png'], check=True)
 
-        img = self.__adb.screenshot(mode="BGR")
-        template_path = os.path.join(BASE_DIR, 'templates', 'open_button.png')
-        template = cv2.imread(template_path)
-        template = resize_template(template, self.__adb.scale_x, self.__adb.scale_y)
+        if flag is None:
+            return False
 
-        return find_points_match_template(img, template, check=True)
+        if isinstance(flag, bool):
+            return flag
+
+        return False
+        
 
     def find_finish_button(self):
 
-        if not self.__adb:
-            print("Not connected to ADB yet")
-            return
+        flag = self._match_template_helper(['templates', 'finished_button.png'], mode="BGR", check=True)
 
-        img = self.__adb.screenshot(mode="BGR")
-        template_path = os.path.join(BASE_DIR, 'templates', 'finished_button.png')
-        template = cv2.imread(template_path)
-        template = resize_template(template, self.__adb.scale_x, self.__adb.scale_y)
+        if flag is None:
+            return False
 
-        return find_points_match_template(img, template, check=True)
+        if isinstance(flag, bool):
+            return flag
 
+        return False
 
     def check_max_swipe(self, mode="top"):
         # Top region
@@ -218,9 +201,7 @@ class GameDetector:
             print("Khong tim thay check swipe png")
             return None
 
-        #screenshot = self.__adb.screenshot(default="CORE")
-
-        cropped_img = self.__adb.crop_screen((left, top, right, bottom))#screenshot.crop((left, top, right, bottom))
+        cropped_img = self.__adb.crop_screen((left, top, right, bottom))
 
         if cropped_img is not None:
             img2 = cv2.cvtColor(cropped_img, cv2.COLOR_RGBA2BGR)

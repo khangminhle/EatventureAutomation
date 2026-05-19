@@ -67,7 +67,7 @@ def find_points_match_template(img, template, threshold=0.8,check=False):
         #cv2.rectangle(img, (center_x-50, center_y-50), (center_x+50, center_y+50), 255, 2)
 
     #cv2.imwrite('Resutlts.png', img)
-    if(len(points)>0):
+    if len(points)>0:
         points = clustering_centers(points)
 
     return points
