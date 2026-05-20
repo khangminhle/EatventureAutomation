@@ -15,20 +15,20 @@ if __name__ == '__main__':
     #device.crop_swipe_max()
     #device.startAuto() 
 
-    adb = ADBController()
+    #adb = ADBController()
 
     #adb.connect()
     #adb.save_screenshot()
-    img = cv2.imread("screenshot.png", 0)  
-    template = cv2.imread("templates/boxes/box5.png", 0)
+    #img = cv2.imread("screenshot.png", 0)  
+    #template = cv2.imread("templates/boxes/box5.png", 0)
 
-    find_points_match_template(img, template)
+    #find_points_match_template(img, template)
     #adb.save_screenshot()   
     #adb.crop_screen((10, 270, 90, 300))
 
 
-    #auto = GameAuto()
+    auto = GameAuto()
 
     #auto.crop_swipe()
-    #auto.start()
+    auto.start()
 

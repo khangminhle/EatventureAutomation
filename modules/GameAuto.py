@@ -45,12 +45,13 @@ class GameAuto:
 			if not self.__detector or not self.__adb:
 				return False
 
-			if self.__detector.find_upgrade_shop_elements():
+			while self.__detector.find_upgrade_shop_elements():
 				for _ in range(TemplateConfig.CLICK_RETRY_COUNT):
 					# Default x, y for first element position
 					self.__adb.click(UICoordinates.FIRST_ELEMENT['x'], UICoordinates.FIRST_ELEMENT['y'])
-				# Default x, y for closing upgrade shop
-				self.__adb.click(UICoordinates.CLOSE_SHOP['x'], UICoordinates.CLOSE_SHOP['y'])
+				time.sleep(1)
+			# Default x, y for closing upgrade shop
+			self.__adb.click(UICoordinates.CLOSE_SHOP['x'], UICoordinates.CLOSE_SHOP['y'])
 
 		except Exception as e:
 			print("Error GameAuto - click_upgrade_shop:", e)
@@ -282,9 +283,9 @@ class GameAuto:
 				print("New loop")
 				self.handle_upgrade_food()
 				self.click_boxes()
-				#self.swipe_button_coin()
-				#self.handle_upgrade_shop()
-				#self.handle_nothing_upgrade()
+				self.swipe_button_coin()
+				self.handle_upgrade_shop()
+				self.handle_nothing_upgrade()
 
 				time.sleep(SwipeConfig.LOOP_DELAY)
 

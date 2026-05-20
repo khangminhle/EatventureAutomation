@@ -1,2 +1,9 @@
-# Created by venv; see https://docs.python.org/3/library/venv.html
+# 1. Bỏ qua toàn bộ các file và thư mục trong dự án
+*
 
+# 2. Không bỏ qua (giữ lại) file auto.py
+!auto.py
+
+# 3. Không bỏ qua các thư mục cụ thể và nội dung bên trong chúng
+!modules/
+!templates/

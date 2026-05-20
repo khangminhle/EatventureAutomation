@@ -13,6 +13,7 @@ from .Constants import GameMode
 from .Constants import ImageColor
 from .Constants import SwipeConfig
 from .Constants import TemplateConfig
+from .Constants import ValidZones
 
 class GameDetector:
 
@@ -41,16 +42,16 @@ class GameDetector:
             return False
 
         # LEFT VALID ZONE
-        if x  < 209:
-            return y >= 960 and y <= 1860
+        if x  < ValidZones.CENTER['x_min']:
+            return y >= ValidZones.LEFT['y_min'] and y <= ValidZones.LEFT['y_max']
 
         # MID VALID ZONE
-        if x >= 209 and x <= 870:
-            return y >= 675 and y <= 1875
+        if x >= ValidZones.CENTER['x_min'] and x <= ValidZones.CENTER['x_max']:
+            return y >= ValidZones.CENTER['y_min'] and y<= ValidZones.CENTER['y_max']
 
         # RIGHT VALID ZONE:
-        if x > 870:
-            return y >= 1240 and y <= 2040
+        if x > ValidZones.CENTER['x_max']:
+            return y >= ValidZones.RIGHT['y_min'] and y <= ValidZones.RIGHT['y_max'] 
 
 
     def _match_template_helper(self, template_name, mode=ImageColor.GRAYSCALE, **kwargs):
@@ -72,6 +73,9 @@ class GameDetector:
                 if mode != ImageColor.BGR:
                     print("Input mode image khong hop le")
                     return None
+
+            # RESIZE TEMPATE
+            template = resize_template(template, self.__adb.scale_x, self.__adb.scale_y)
 
             return find_points_match_template(img, template, **kwargs)
 
@@ -150,7 +154,7 @@ class GameDetector:
             template_name = 'coin_potion_shop'
         else:
             if self.__map == GameMode.NORMAL:
-                template_name = 'coinshop'
+                template_name = 'coin_shop'
             else:
                 return False
 

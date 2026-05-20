@@ -109,8 +109,8 @@ class ValidZones:
     CENTER = {"x_min": 209, "x_max": 870, "y_min": 675, "y_max": 1875}
     
     # Left zone
-    LEFT = {"x_min": 0, "x_max": 209, "y_min": 960, "y_max": 1860}
+    LEFT = {"y_min": 960, "y_max": 1860}
     
     # Right zone
-    RIGHT = {"x_min": 870, "x_max": 999999, "y_min": 1240, "y_max": 2040}
+    RIGHT = {"y_min": 1240, "y_max": 2040}
 
