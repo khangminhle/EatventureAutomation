@@ -8,6 +8,8 @@ from .Constants import UICoordinates
 from .Constants import SwipeConfig
 from .Constants import TemplateConfig
 
+class GameStateNormal:
+	
 class GameAuto:
 
 	def __init__(self):
