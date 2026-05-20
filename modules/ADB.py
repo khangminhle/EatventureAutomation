@@ -309,3 +309,39 @@ class ADBController:
         except Exception as e:
             logger.error(f"Save screenshot error: {e}")
             return False
+
+    def crop_swipe(self):
+
+        if not self.__core:
+            logger.error("Device not connected")
+            return False
+
+        try:
+            # Top region
+            left = SwipeConfig.SWIPE_TOP_REGION['left']
+            top = SwipeConfig.SWIPE_TOP_REGION['top']
+            right = SwipeConfig.SWIPE_TOP_REGION['right']
+            bottom = SwipeConfig.SWIPE_TOP_REGION['bottom']
+
+            # Bottom region
+            new_top = SwipeConfig.SWIPE_BOTTOM_REGION['top']
+            new_bottom = SwipeConfig.SWIPE_BOTTOM_REGION['bottom']
+
+            cropped_img = self.crop_screen((left, top, right, bottom))#screenshot.crop((left, top, right, bottom))
+
+            if cropped_img is not None:
+                self.save_image(cropped_img, name="check_swipe")
+            else:
+                print("Loi crop swipe top")
+                return None
+
+            cropped_img = self.crop_screen((left, new_top, right, new_bottom))#screenshot.crop((left, new_top, right, new_bottom))
+
+            if cropped_img is not None:
+                self.save_image(cropped_img, name="check_swipe_bottom")
+            else:
+                print("Loi crop swipe bottom")
+                return None
+
+        except Exception as e:
+            print("Error ADB - crop_swipe:", e)

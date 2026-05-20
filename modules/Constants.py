@@ -38,7 +38,7 @@ class SwipeConfig:
     SWIPE_DISTANCE_RATIO = 1/5
     CLICK_DELAY = 0.1
     SWIPE_DURATION = 0.5
-    LOOP_DELAY = 0.5
+    DELAY_EACH_STATE = 0.5
     
     # Crop regions for swipe detection
     SWIPE_TOP_REGION = {"left": 10, "top": 270, "right": 90, "bottom": 300}
