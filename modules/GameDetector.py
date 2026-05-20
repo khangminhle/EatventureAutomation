@@ -128,7 +128,7 @@ class GameDetector:
                 return []
             
             if len(points) > 0:
-                return points#return [(x, y) for x, y in points if self._check_valid_points(x, y)]
+                return [(x, y+20) for x, y in points if self._check_valid_points(x, y+20)]
 
         return []
 

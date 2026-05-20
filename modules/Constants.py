@@ -65,11 +65,6 @@ class TemplateConfig:
         "boxes_dir": "templates/boxes",
     }
     
-    THRESHOLDS = {
-        "default": 0.8,
-        "coin_shop": 0.9,
-    }
-    
     CLICK_RETRY_COUNT = 10  # Times to click shop elements
 
     @classmethod

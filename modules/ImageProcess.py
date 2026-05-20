@@ -75,6 +75,11 @@ def find_points_match_template(
             return False if check else []
         
         w, h = template.shape[1], template.shape[0]
+
+        # Blur Gaussian
+        #kernel_size = (3, 3) 
+        #img = cv2.GaussianBlur(img, kernel_size, sigmaX=0)
+        #template = cv2.GaussianBlur(template, kernel_size, sigmaX=0)
         
         # Perform template matching
         res = cv2.matchTemplate(img, template, cv2.TM_CCOEFF_NORMED)
@@ -86,16 +91,26 @@ def find_points_match_template(
         if check:
             return len(loc[0]) > 0
         
+        img2 = img.copy()
         # Calculate center points
         points = []
         for pt in zip(*loc[::-1]):
             center_x = pt[0] + w // 2
             center_y = pt[1] + h // 2
             points.append((center_x, center_y))
-        
+            cv2.rectangle(img, (center_x-50, center_y-50), (center_x+50, center_y+50), (0, 255, 0), 1)
+
+        cv2.imwrite("test.png", img)
         # Cluster nearby points
         if len(points) > 0:
+            print(len(points))
             points = clustering_centers(points)
+            print(len(points))
+
+        for p in points:
+            cv2.rectangle(img2, (p[0]-50, p[1]-50), (p[0]+50, p[1]+50), (0, 255, 0), 1)
+        
+        cv2.imwrite("test1.png", img2)
         
         return points
     

@@ -2,6 +2,9 @@
 from modules.GameAuto import GameAuto
 from modules.ADB import ADBController
 from modules.GameDetector import GameDetector
+from modules.ImageProcess import find_points_match_template
+import cv2
+
 #scrcpy -S --window-title "eatventure_screen" --max-fps 30
 
 if __name__ == '__main__':
@@ -10,13 +13,17 @@ if __name__ == '__main__':
     #device.connect()
     #device.take_screenshot()
     #device.crop_swipe_max()
-    #device.startAuto()
+    #device.startAuto() 
 
     adb = ADBController()
 
-    adb.connect()
+    #adb.connect()
+    #adb.save_screenshot()
+    img = cv2.imread("screenshot.png", 0)  
+    template = cv2.imread("templates/boxes/box5.png", 0)
 
-    adb.save_screenshot()
+    find_points_match_template(img, template)
+    #adb.save_screenshot()   
     #adb.crop_screen((10, 270, 90, 300))
 
 
