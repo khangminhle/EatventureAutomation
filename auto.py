@@ -12,15 +12,16 @@ if __name__ == '__main__':
     #device.crop_swipe_max()
     #device.startAuto()
 
-    #adb = ADBController()
+    adb = ADBController()
 
-    #adb.connect()
+    adb.connect()
 
+    adb.save_screenshot()
     #adb.crop_screen((10, 270, 90, 300))
 
 
-    auto = GameAuto()
+    #auto = GameAuto()
 
     #auto.crop_swipe()
-    auto.start()
+    #auto.start()
 

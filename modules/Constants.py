@@ -1,17 +1,19 @@
 import os
-from enum import Enum
+from enum import Enum, auto
+import glob
+import cv2
 
-# Screen resolution defaults
-DEFAULT_TEMPLATE_WIDTH = 1080
-DEFAULT_TEMPLATE_HEIGHT = 2340
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class GameMode(Enum):
     """Game mode enumeration"""
-    NORMAL = "NORMAL"
-    POTION = "POTION"
+    NORMAL = auto()
+    POTION = auto()
 
+class ImageColor(Enum):
+    GRAYSCALE = auto()
+    BGR = auto()
 
 class UICoordinates:
     """UI element coordinates (based on 1080x2340 resolution, auto-scaled by ADB)"""
@@ -42,9 +44,14 @@ class SwipeConfig:
     SWIPE_TOP_REGION = {"left": 10, "top": 270, "right": 90, "bottom": 300}
     SWIPE_BOTTOM_REGION = {"left": 10, "top": 2080, "right": 90, "bottom": 2110}
 
-
 class TemplateConfig:
     """Template matching configurations"""
+
+    # Screen resolution defaults
+    DEFAULT_TEMPLATE_WIDTH = 1080
+    DEFAULT_TEMPLATE_HEIGHT = 2340
+
+    LOADED_TEMPLATES = {}
     
     TEMPLATES = {
         "upgrade_food": "templates/button_test.png",
@@ -65,6 +72,40 @@ class TemplateConfig:
     
     CLICK_RETRY_COUNT = 10  # Times to click shop elements
 
+    @classmethod
+    def load_templates(cls):
+        print("--Loading templates")
+        for name, path in cls.TEMPLATES.items():
+            template_path = os.path.join(BASE_DIR, path)
+            
+            if not os.path.exists(template_path):
+                print(f'Khong tim thay path:', template_path)
+                continue
+
+            if os.path.isdir(template_path):
+
+                search_pattern = os.path.join(template_path, "*.png")
+
+                file_list = glob.glob(search_pattern)
+
+                for file_path in file_list:
+                    img = cv2.imread(file_path)
+
+                    file_name = os.path.basename(file_path)
+
+                    if img is not None:
+                        cls.LOADED_TEMPLATES[file_name] = img
+                        print("filename", file_name)
+                        print("Da load template:", file_path)
+            else:
+                img = cv2.imread(template_path)
+
+                if img is not None:
+                    cls.LOADED_TEMPLATES[name] = img
+                    print("Da load template:", template_path)
+
+
+
 
 class ValidZones:
     """Valid zones for clicking game elements"""
@@ -78,21 +119,3 @@ class ValidZones:
     # Right zone
     RIGHT = {"x_min": 870, "x_max": 999999, "y_min": 1240, "y_max": 2040}
 
-
-# Legacy constants for backward compatibility
-DEFAULT_FINISH_BTN_X = UICoordinates.FINISH_BTN["x"]
-DEFAULT_FINISH_BTN_Y = UICoordinates.FINISH_BTN["y"]
-DEFAULT_RENOVATE_X = UICoordinates.RENOVATE_BTN["x"]
-DEFAULT_RENOVATE_Y = UICoordinates.RENOVATE_BTN["y"]
-DEFAULT_OPEN_BTN_X = UICoordinates.OPEN_BTN["x"]
-DEFAULT_OPEN_BTN_Y = UICoordinates.OPEN_BTN["y"]
-DEFAULT_UPGRADE_SHOP_X = UICoordinates.UPGRADE_SHOP_BTN["x"]
-DEFAULT_UPGRADE_SHOP_Y = UICoordinates.UPGRADE_SHOP_BTN["y"]
-DEFAULT_ADS_X = UICoordinates.ADS_BTN["x"]
-DEFAULT_ADS_Y = UICoordinates.ADS_BTN["y"]
-DEFAULT_OUTSIDE_X = UICoordinates.OUTSIDE["x"]
-DEFAULT_OUTSIDE_Y = UICoordinates.OUTSIDE["y"]
-DEFAULT_FIRST_ELEMENT_X = UICoordinates.FIRST_ELEMENT["x"]
-DEFAULT_FIRST_ELEMENT_Y = UICoordinates.FIRST_ELEMENT["y"]
-DEFAULT_CLOSING_UPGRADE_X = UICoordinates.CLOSE_SHOP["x"]
-DEFAULT_CLOSING_UPGRADE_Y = UICoordinates.CLOSE_SHOP["y"]

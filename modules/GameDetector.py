@@ -1,17 +1,22 @@
 import os
+from string import templatelib
 import cv2
 import glob
 import numpy as np
 #import adbutils
 
 from .ImageProcess import *
+from .ADB import ADBController
+
 from .Constants import *
-
-
+from .Constants import GameMode
+from .Constants import ImageColor
+from .Constants import SwipeConfig
+from .Constants import TemplateConfig
 
 class GameDetector:
 
-    def __init__(self, adb: ADBController, map_game="NORMAL"):
+    def __init__(self, adb: ADBController, map_game=GameMode.NORMAL):
         self.__adb = adb
         self.__map = map_game
 
@@ -48,7 +53,7 @@ class GameDetector:
             return y >= 1240 and y <= 2040
 
 
-    def _match_template_helper(self, template_paths, mode="GRAY", **kwargs):
+    def _match_template_helper(self, template_name, mode=ImageColor.GRAYSCALE, **kwargs):
 
         if not self.__adb:
             print("Not connected to ADB yet")
@@ -59,13 +64,14 @@ class GameDetector:
             img = self.__adb.screenshot(mode=mode)
 
             # TEMPLATE
-            template_path = os.path.join(BASE_DIR, *template_paths)
+            template = TemplateConfig.LOADED_TEMPLATES[template_name]
 
-            if mode == "GRAY":
-                template = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
+            if mode == ImageColor.GRAYSCALE:
+                template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
             else:
-                if mode == "BGR":
-                    template = cv2.imread(template_path)
+                if mode != ImageColor.BGR:
+                    print("Input mode image khong hop le")
+                    return None
 
             return find_points_match_template(img, template, **kwargs)
 
@@ -74,8 +80,7 @@ class GameDetector:
             return None
 
     def find_upgrade_food(self):
-
-        points = self._match_template_helper(['templates', 'button_test.png'])
+        points = self._match_template_helper('upgrade_food')#['templates', 'button_test.png'])
 
         if points is None:
             return []
@@ -87,11 +92,13 @@ class GameDetector:
 
     def find_button_coin(self):
 
-        if self.__map == "POTION":
-            points = self._match_template_helper(['templates', 'coin_potion_ingredients.png'])
+        if self.__map == GameMode.POTION:
+            points = self._match_template_helper('coin_potion_ingredients')#['templates', 'coin_potion_ingredients.png'])
         else:
-            if self.__map == "NORMAL":
-                points = self._match_template_helper(['templates', 'button_coin.png'])
+            if self.__map == GameMode.NORMAL:
+                points = self._match_template_helper('button_coin')#['templates', 'button_coin.png'])
+            else:
+                return []
 
         if points is None:
             return []
@@ -103,12 +110,14 @@ class GameDetector:
 
     def find_boxes(self):
 
-        template_path = os.path.join(BASE_DIR, 'templates', 'boxes' , '*.png')
-        templates = glob.glob(template_path)
+        #templates = TemplateConfig.LOADED_TEMPLATES['boxes_dir']
 
-        for tp in templates:
-            print(tp)
-            points = self._match_template_helper([tp])
+        template_path = os.path.join(BASE_DIR, 'templates', 'boxes' , '*.png')
+        template_names = [ os.path.basename(path) for path in glob.glob(template_path)]
+
+        for template_name in template_names:
+        
+            points = self._match_template_helper(template_name)
 
             print("boxes:", points)
 
@@ -125,7 +134,7 @@ class GameDetector:
 
     def find_upgrade_shop(self):
 
-        flag = self._match_template_helper(['templates', 'upgrade_button.png'], mode="BGR", check=True)
+        flag = self._match_template_helper('upgrade_shop', mode=ImageColor.BGR, check=True)
 
         if flag is None:
             return False
@@ -137,13 +146,15 @@ class GameDetector:
 
     def find_upgrade_shop_elements(self):
 
-        if self.__map == "POTION":
-            template_path = ['templates', 'coin_potion_shop.png']
+        if self.__map == GameMode.POTION:
+            template_name = 'coin_potion_shop'
         else:
-            if self.__map == "NORMAL":
-                template_path = ['templates', 'coinshop.png']
+            if self.__map == GameMode.NORMAL:
+                template_name = 'coinshop'
+            else:
+                return False
 
-        flag = self._match_template_helper(template_path, mode="BGR", threshold=0.9, check=True)
+        flag = self._match_template_helper(template_name, mode=ImageColor.BGR, threshold=0.9, check=True)
 
         if flag is None:
             return False
@@ -156,7 +167,7 @@ class GameDetector:
 
     def find_open_button(self):
         
-        flag = self._match_template_helper(['templates', 'open_button.png'], check=True)
+        flag = self._match_template_helper('open_button', check=True)
 
         if flag is None:
             return False
@@ -169,7 +180,7 @@ class GameDetector:
 
     def find_finish_button(self):
 
-        flag = self._match_template_helper(['templates', 'finished_button.png'], mode="BGR", check=True)
+        flag = self._match_template_helper('finish_button', mode=ImageColor.BGR, check=True)
 
         if flag is None:
             return False
@@ -181,18 +192,18 @@ class GameDetector:
 
     def check_max_swipe(self, mode="top"):
         # Top region
-        left = 10 * self.__adb.scale_x
-        top = 270 * self.__adb.scale_y
-        right = 90 * self.__adb.scale_x
-        bottom = 300 * self.__adb.scale_y
+        left = SwipeConfig.SWIPE_TOP_REGION['left'] * self.__adb.scale_x
+        top = SwipeConfig.SWIPE_TOP_REGION['top'] * self.__adb.scale_y
+        right = SwipeConfig.SWIPE_TOP_REGION['right'] * self.__adb.scale_x
+        bottom = SwipeConfig.SWIPE_TOP_REGION['bottom'] * self.__adb.scale_y
 
         if mode == "top":
             img1_path = os.path.join(BASE_DIR, 'check_swipe.png')
             img1 = cv2.imread(img1_path)
         else:
             # Bottom region
-            top = 2080 * self.__adb.scale_y
-            bottom = 2110 * self.__adb.scale_y
+            top = SwipeConfig.SWIPE_BOTTOM_REGION['top'] * self.__adb.scale_y
+            bottom = SwipeConfig.SWIPE_BOTTOM_REGION['bottom'] * self.__adb.scale_y
             img1_path = os.path.join(BASE_DIR, 'check_swipe_bottom.png')
             img1 = cv2.imread(img1_path)
 

@@ -6,7 +6,9 @@ import subprocess
 import cv2
 import numpy as np
 from typing import Optional, Tuple
-from .Constants import DEFAULT_TEMPLATE_WIDTH, DEFAULT_TEMPLATE_HEIGHT
+from .Constants import TemplateConfig
+from .Constants import SwipeConfig
+from .Constants import ImageColor
 
 logger = logging.getLogger(__name__)
 
@@ -70,12 +72,15 @@ class ADBController:
             return False
         
         try:
+            if not self.__core:
+                return False
+
             info = self.__core.window_size()
             self.screen_center_x = info.width // 2
             self.screen_center_y = info.height // 2
-            self.distanceToSwipe = -self.screen_center_y / 5
-            self.scale_x = info.width / DEFAULT_TEMPLATE_WIDTH
-            self.scale_y = info.height / DEFAULT_TEMPLATE_HEIGHT
+            self.distanceToSwipe = -self.screen_center_y * SwipeConfig.SWIPE_DISTANCE_RATIO
+            self.scale_x = info.width / TemplateConfig.DEFAULT_TEMPLATE_WIDTH
+            self.scale_y = info.height / TemplateConfig.DEFAULT_TEMPLATE_HEIGHT
             self.max_screen_x = info.width
             self.max_screen_y = info.height
             
@@ -163,7 +168,7 @@ class ADBController:
 
     def crop_screen(
         self,
-        position: Tuple[int, int, int, int]
+        position: Tuple[int|float, int|float, int|float, int|float]
     ) -> Optional[np.ndarray]:
         """
         Crop a region from the screen.
@@ -179,7 +184,7 @@ class ADBController:
             return None
         
         try:
-            left, top, right, bottom = [int(coord) for coord in position]
+            left, top, right, bottom = [coord for coord in position]
             
             # Validate coordinates
             if any(coord < 0 for coord in [left, top, right, bottom]):
@@ -194,6 +199,13 @@ class ADBController:
             if screenshot is None:
                 return None
             
+            # Scale for current device resolution
+
+            left *= self.scale_x
+            top *= self.scale_y
+            right *= self.scale_x
+            bottom *= self.scale_y
+
             img = screenshot[int(top):int(bottom), int(left):int(right)]
             return img
         
@@ -201,12 +213,12 @@ class ADBController:
             logger.error(f"Crop screen error: {e}")
             return None
 
-    def screenshot(self, mode: str = "BGR") -> Optional[np.ndarray]:
+    def screenshot(self, mode: ImageColor = ImageColor.BGR) -> Optional[np.ndarray]:
         """
         Get full screenshot in specified color mode.
         
         Args:
-            mode: Color mode ("BGR" or "GRAY")
+            mode: Color mode (ImageColor.BGR or ImageColor.GRAYSCALE)
         
         Returns:
             Image as numpy array, or None on error
@@ -221,9 +233,9 @@ class ADBController:
             if screenshot is None:
                 return None
             
-            if mode == "BGR":
+            if mode == ImageColor.BGR:
                 return cv2.cvtColor(screenshot, cv2.COLOR_RGBA2BGR)
-            elif mode == "GRAY":
+            elif mode == ImageColor.GRAYSCALE:
                 return cv2.cvtColor(screenshot, cv2.COLOR_RGBA2GRAY)
             else:
                 logger.warning(f"Unknown mode: {mode}, defaulting to BGR")
@@ -237,7 +249,7 @@ class ADBController:
         self,
         image: np.ndarray,
         name: str,
-        mode: str = "BGR"
+        mode: ImageColor = ImageColor.BGR
     ) -> bool:
         """
         Save image to file.
@@ -255,9 +267,9 @@ class ADBController:
                 logger.error("Input must be numpy array")
                 return False
             
-            if mode == "BGR":
+            if mode == ImageColor.BGR:
                 new_image = cv2.cvtColor(image, cv2.COLOR_RGBA2BGR)
-            elif mode == "GRAY":
+            elif mode == ImageColor.GRAYSCALE:
                 new_image = cv2.cvtColor(image, cv2.COLOR_RGBA2GRAY)
             else:
                 logger.warning(f"Unknown mode: {mode}, defaulting to BGR")
@@ -271,7 +283,7 @@ class ADBController:
             logger.error(f"Save image error: {e}")
             return False
 
-    def save_screenshot(self, mode: str = "BGR") -> bool:
+    def save_screenshot(self, mode: ImageColor = ImageColor.BGR) -> bool:
         """
         Save current screenshot to file.
         
