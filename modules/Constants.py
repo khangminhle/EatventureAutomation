@@ -5,6 +5,14 @@ import cv2
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+class GameStates(Enum):
+    FOOD_UPGRADE = auto() 
+    SHOP_UPGRADE = auto() 
+    UNBOX = auto() 
+    NOTHING_UPGRADE = auto()
+    FINISH = auto()
+    WATCHING_ADS = auto()
+    EXIT = auto()
 
 class GameMode(Enum):
     """Game mode enumeration"""
@@ -25,7 +33,7 @@ class UICoordinates:
     UPGRADE_SHOP_BTN = {"x": 977, "y": 2200}
     ADS_BTN = {"x": 545, "y": 2200}
     OUTSIDE = {"x": 550, "y": 400}
-    
+
     # Shop elements
     FIRST_ELEMENT = {"x": 850, "y": 950}
     CLOSE_SHOP = {"x": 920, "y": 800}
@@ -35,10 +43,10 @@ class SwipeConfig:
     """Swipe and detection configurations"""
     
     MAX_SWIPE_TURNS = 2
-    SWIPE_DISTANCE_RATIO = 1/5
-    CLICK_DELAY = 0.1
-    SWIPE_DURATION = 0.5
-    DELAY_EACH_STATE = 0.5
+    SWIPE_DISTANCE_RATIO = 1/3
+    CLICK_DELAY = 0.05
+    SWIPE_DURATION = 1
+    DELAY_EACH_STATE = 0.05
     
     # Crop regions for swipe detection
     SWIPE_TOP_REGION = {"left": 10, "top": 270, "right": 90, "bottom": 300}
@@ -54,6 +62,7 @@ class TemplateConfig:
     LOADED_TEMPLATES = {}
     
     TEMPLATES = {
+        "club": "templates/club.png",
         "upgrade_food": "templates/button_test.png",
         "button_coin": "templates/button_coin.png",
         "coin_potion_ingredients": "templates/coin_potion_ingredients.png",
@@ -63,6 +72,8 @@ class TemplateConfig:
         "open_button": "templates/open_button.png",
         "finish_button": "templates/finished_button.png",
         "boxes_dir": "templates/boxes",
+        "ads": "templates/nomultiply.png",
+        "close_ads": "templates/ads"
     }
     
     CLICK_RETRY_COUNT = 10  # Times to click shop elements
@@ -106,7 +117,7 @@ class ValidZones:
     """Valid zones for clicking game elements"""
     
     # Center zone
-    CENTER = {"x_min": 209, "x_max": 870, "y_min": 675, "y_max": 1875}
+    CENTER = {"x_min": 209, "x_max": 870, "y_min": 400, "y_max": 1875}
     
     # Left zone
     LEFT = {"y_min": 960, "y_max": 1860}

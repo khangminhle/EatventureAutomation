@@ -56,7 +56,8 @@ def find_points_match_template(
     img: np.ndarray,
     template: np.ndarray,
     threshold: float = 0.8,
-    check: bool = False
+    check: bool = False,
+    binary: bool = False
 ) -> bool | list[tuple[int, int]]:
     """
     Find matching template locations in image using template matching.
@@ -80,9 +81,22 @@ def find_points_match_template(
         #kernel_size = (3, 3) 
         #img = cv2.GaussianBlur(img, kernel_size, sigmaX=0)
         #template = cv2.GaussianBlur(template, kernel_size, sigmaX=0)
+
+        if binary:
+            # Binary 
+            thresh_value = 150
+            _, img = cv2.threshold(img, thresh_value, 255, cv2.THRESH_BINARY_INV)
+
+            cv2.imwrite("test_threseh.png", img)
+            _, template = cv2.threshold(template, thresh_value, 255, cv2.THRESH_BINARY_INV)
         
         # Perform template matching
         res = cv2.matchTemplate(img, template, cv2.TM_CCOEFF_NORMED)
+
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+
+        print("Do chinh xac cao nhat:", max_val)
+        print("Do chinh xac thap nhat:", min_val)
         
         # Find all locations matching threshold
         loc = np.where(res >= threshold)
@@ -105,10 +119,10 @@ def find_points_match_template(
         if len(points) > 0:
             points = clustering_centers(points)
 
-        #for p in points:
-        #    cv2.rectangle(img2, (p[0]-50, p[1]-50), (p[0]+50, p[1]+50), (0, 255, 0), 1)
+            for p in points:
+                cv2.rectangle(img2, (p[0]-50, p[1]-50), (p[0]+50, p[1]+50), (255, 255, 255), 1)
         
-        #cv2.imwrite("test1.png", img2)
+            cv2.imwrite("test1.png", img2)
         
         return points
     

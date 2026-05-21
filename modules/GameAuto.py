@@ -4,21 +4,13 @@ from enum import Enum, auto
 
 from .ADB import ADBController
 from .GameDetector import GameDetector
-from .Constants import GameMode
+from .Constants import GameMode, ImageColor
 from .Constants import UICoordinates
 from .Constants import SwipeConfig
 from .Constants import TemplateConfig
+from .Constants import GameStates
 
-from .GameStateManager import StateFinish, StateFoodUpgrade, StateNothingUpgrade, StateShopUpgrade, StateUnbox
-
-class GameStates(Enum):
-	FOOD_UPGRADE = auto() #1
-	SHOP_UPGRADE = auto() #2
-	UNBOX = auto() #
-	NOTHING_UPGRADE = auto()
-	FINISH = auto()
-	EXIT = auto()
-
+from .GameStateManager import StateFinish, StateFoodUpgrade, StateNothingUpgrade, StateShopUpgrade, StateUnbox, StateWatchingAds
 
 class GameAuto:
 
@@ -27,7 +19,7 @@ class GameAuto:
 			self.__adb = None
 			self.__detector = None
 			self.__map = GameMode.NORMAL
-			self.__currentState = GameStates.FOOD_UPGRADE
+			self.__currentState = GameStates.WATCHING_ADS
 			self.__states = {}
 
 		except Exception as e:
@@ -53,7 +45,7 @@ class GameAuto:
 			self.__states[GameStates.UNBOX] = StateUnbox(self.__adb, self.__detector)
 			self.__states[GameStates.NOTHING_UPGRADE] = StateNothingUpgrade(self.__adb, self.__detector)
 			self.__states[GameStates.FINISH] = StateFinish(self.__adb, self.__detector)
-			
+			self.__states[GameStates.WATCHING_ADS] = StateWatchingAds(self.__adb, self.__detector)
 
 			return True
 
@@ -72,17 +64,35 @@ class GameAuto:
 
 			self.__adb.crop_swipe()
 
+			#main_screenshot = self.__adb.save_screenshot()
+
 
 			print("Auto started!")
 			while(True):
+
+				screenshot = {
+					ImageColor.GRAYSCALE: self.__adb.screenshot(ImageColor.GRAYSCALE),
+					ImageColor.BGR: self.__adb.screenshot()
+				}
+
 				print("\n----- New loop - ",self.__currentState)
+
+				if self.__currentState == GameStates.WATCHING_ADS:
+
+					state = self.__states[GameStates.WATCHING_ADS].start(screenshot)
+
+					if state is True:
+						self.__currentState = GameStates.FOOD_UPGRADE
+					print('state:', state)
+					time.sleep(2)
+					continue
 
 				if self.__currentState == GameStates.EXIT:
 					print("Da xay ra loi. Thoat game!")
 					return False
 
 
-				state = self.__states[self.__currentState].start()
+				state = self.__states[self.__currentState].start(screenshot)
 				print('state:', state)
 
 				if state is None:
@@ -92,27 +102,27 @@ class GameAuto:
 				match self.__currentState:
 
 					case GameStates.FOOD_UPGRADE:
-						if state is False:
-							self.__currentState = GameStates.UNBOX
+						#if state is False:
+						self.__currentState = GameStates.UNBOX
 
 					case GameStates.SHOP_UPGRADE:
-						if state is False:
-							self.__currentState = GameStates.NOTHING_UPGRADE
+						#if state is False:
+						self.__currentState = GameStates.NOTHING_UPGRADE
 
 					case GameStates.UNBOX:
-						if state is False:
-							self.__currentState = GameStates.SHOP_UPGRADE
+						#if state is False:
+						self.__currentState = state#GameStates.SHOP_UPGRADE
 
 					case GameStates.NOTHING_UPGRADE:
-						if state is True:
+						self.__currentState = state
+						'''
+						if state is False:
 							self.__currentState = GameStates.FOOD_UPGRADE
-						elif state is False:
-							self.__currentState = GameStates.FINISH
 						elif state == 'finish':
 							self.__currentState = GameStates.FINISH
+						'''
 					case GameStates.FINISH:
-						self.__currentState = GameStates.FOOD_UPGRADE
-						time.sleep(5)
+						self.__currentState = GameStates.WATCHING_ADS#GameStates.FOOD_UPGRADE
 
 				print("Trang thai ke tiep:", self.__currentState)
 				time.sleep(SwipeConfig.DELAY_EACH_STATE)

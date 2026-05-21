@@ -20,6 +20,23 @@ class GameDetector:
     def __init__(self, adb: ADBController, map_game=GameMode.NORMAL):
         self.__adb = adb
         self.__map = map_game
+        self.__screenshot = None
+
+    def config(self, screenshot):
+
+        self.__screenshot = screenshot
+
+    def _is_valid(self):
+
+        if not self.__adb:
+            print("Chua khoi tao ADB")
+            return False
+
+        if not self.__screenshot:
+            print("screenshot None")
+            return False
+
+        return True
 
     def check_nothing_upgrade(self):
 
@@ -27,9 +44,9 @@ class GameDetector:
 
         for action in actions:
             if action():
-                return True
-        
-        return False
+                return False
+    
+        return True
 
     def _check_valid_points(self, x: int, y: int):
 
@@ -54,15 +71,15 @@ class GameDetector:
             return y >= ValidZones.RIGHT['y_min'] and y <= ValidZones.RIGHT['y_max'] 
 
 
-    def _match_template_helper(self, template_name, mode=ImageColor.GRAYSCALE, **kwargs):
+    def _match_template_helper(self, template_name, img=None, mode=ImageColor.GRAYSCALE, **kwargs):
 
-        if not self.__adb:
-            print("Not connected to ADB yet")
+        if not self._is_valid():
             return None
 
         try:
             # SCREENSHOT
-            img = self.__adb.screenshot(mode=mode)
+            if img is None:
+                img = self.__screenshot[mode]#self.__adb.screenshot(mode=mode)
 
             # TEMPLATE
             template = TemplateConfig.LOADED_TEMPLATES[template_name]
@@ -92,6 +109,9 @@ class GameDetector:
         if isinstance(points, bool):
             return []
 
+        if len(points) > 0:
+            print('arrows:', points)
+
         return [(x, y+20) for x, y in points if self._check_valid_points(x, y+20)]
 
     def find_button_coin(self):
@@ -114,24 +134,25 @@ class GameDetector:
 
     def find_boxes(self):
 
-        #templates = TemplateConfig.LOADED_TEMPLATES['boxes_dir']
-
         template_path = os.path.join(BASE_DIR, 'templates', 'boxes' , '*.png')
         template_names = [ os.path.basename(path) for path in glob.glob(template_path)]
 
+        img = self.__screenshot[ImageColor.GRAYSCALE]#self.__adb.screenshot(mode=ImageColor.GRAYSCALE)
+
         for template_name in template_names:
         
-            points = self._match_template_helper(template_name)
+            points = self._match_template_helper(template_name, img=img, binary=True)
 
-            print("boxes:", points)
+            print(f'boxes - {template_name}:', points)
 
             if points is None:
                 return []
 
             if isinstance(points, bool):
                 return []
-            
+
             if len(points) > 0:
+
                 return [(x, y+20) for x, y in points if self._check_valid_points(x, y+20)]
 
         return []
@@ -185,6 +206,52 @@ class GameDetector:
     def find_finish_button(self):
 
         flag = self._match_template_helper('finish_button', mode=ImageColor.BGR, check=True)
+
+        if flag is None:
+            return False
+
+        if isinstance(flag, bool):
+            return flag
+
+        return False
+
+    def find_ads_open_button(self):
+
+        flag = self._match_template_helper('ads', check=True)
+
+        if flag is None:
+            return False
+
+        if isinstance(flag, bool):
+            return flag
+
+        return False
+
+    def find_ads_close_button(self):
+
+        template_path = os.path.join(BASE_DIR, 'templates', 'ads' , '*.png')
+        template_names = [ os.path.basename(path) for path in glob.glob(template_path)]
+
+        for template_name in template_names:
+            print(template_name)
+            points = self._match_template_helper(template_name)
+
+            if points is None:
+                return []
+
+            if isinstance(points, bool):
+                return []
+
+            print("close ads x,y:", points)
+            
+            if len(points) > 0:
+                return points#[(x, y+20) for x, y in points if self._check_valid_points(x, y+20)]
+
+        return []
+
+    def find_club_button(self):
+
+        flag = self._match_template_helper('club', check=True)
 
         if flag is None:
             return False
