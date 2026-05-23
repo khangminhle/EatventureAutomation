@@ -15,11 +15,12 @@ if __name__ == '__main__':
     #device.take_screenshot()
     #device.crop_swipe_max()
     #device.startAuto() 
-    '''
-    adb = ADBController()
+    
+    #adb = ADBController()
 
-    adb.connect()
+    #adb.connect()
     #adb.save_screenshot()
+    '''
     img = cv2.imread("screenshot.png", 0)  
 
     print('test')

@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.cluster import DBSCAN
 
 
-def resize_template(img: np.ndarray, scale_x: float = 1.0, scale_y: float = 1.0) -> np.ndarray:
+def resize_image(img: np.ndarray, scale_x: float = 1.0, scale_y: float = 1.0) -> np.ndarray:
     """
     Resize template image based on scale factors.
     
@@ -119,10 +119,10 @@ def find_points_match_template(
         if len(points) > 0:
             points = clustering_centers(points)
 
-            for p in points:
-                cv2.rectangle(img2, (p[0]-50, p[1]-50), (p[0]+50, p[1]+50), (255, 255, 255), 1)
+            #for p in points:
+            #    cv2.rectangle(img2, (p[0]-50, p[1]-50), (p[0]+50, p[1]+50), (255, 255, 255), 1)
         
-            cv2.imwrite("test1.png", img2)
+            #cv2.imwrite("test1.png", img2)
         
         return points
     

@@ -43,7 +43,7 @@ class SwipeConfig:
     """Swipe and detection configurations"""
     
     MAX_SWIPE_TURNS = 2
-    SWIPE_DISTANCE_RATIO = 1/3
+    SWIPE_DISTANCE_RATIO = 1/1.5
     CLICK_DELAY = 0.05
     SWIPE_DURATION = 1
     DELAY_EACH_STATE = 0.05

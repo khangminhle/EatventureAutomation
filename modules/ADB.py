@@ -4,6 +4,7 @@ import logging
 import adbutils
 import subprocess
 import cv2
+from modules.ImageProcess import resize_image
 import numpy as np
 from typing import Optional, Tuple
 from .Constants import TemplateConfig
@@ -195,7 +196,9 @@ class ADBController:
                 logger.error("Invalid crop region: left >= right or top >= bottom")
                 return None
             
-            screenshot = self.__screencap()
+            screenshot = self.__core.screenshot()
+
+            #self.__screencap()
             if screenshot is None:
                 return None
             
@@ -205,6 +208,8 @@ class ADBController:
             top *= self.scale_y
             right *= self.scale_x
             bottom *= self.scale_y
+
+            screenshot = np.array(screenshot)
 
             img = screenshot[int(top):int(bottom), int(left):int(right)]
             return img
@@ -228,18 +233,21 @@ class ADBController:
             return None
         
         try:
-            screenshot = self.__screencap()
-            
+            #screenshot = self.__screencap()
+            screenshot = self.__core.screenshot()
+
+            screenshot = resize_image(np.array(screenshot), 0.5, 0.5)
+
             if screenshot is None:
                 return None
             
             if mode == ImageColor.BGR:
-                return cv2.cvtColor(screenshot, cv2.COLOR_RGBA2BGR)
+                return cv2.cvtColor(screenshot, cv2.COLOR_RGB2BGR)
             elif mode == ImageColor.GRAYSCALE:
-                return cv2.cvtColor(screenshot, cv2.COLOR_RGBA2GRAY)
+                return cv2.cvtColor(screenshot, cv2.COLOR_RGB2GRAY)
             else:
                 logger.warning(f"Unknown mode: {mode}, defaulting to BGR")
-                return cv2.cvtColor(screenshot, cv2.COLOR_RGBA2BGR)
+                return cv2.cvtColor(screenshot, cv2.COLOR_RGB2BGR)
         
         except Exception as e:
             logger.error(f"Screenshot error: {e}")
@@ -268,12 +276,12 @@ class ADBController:
                 return False
             
             if mode == ImageColor.BGR:
-                new_image = cv2.cvtColor(image, cv2.COLOR_RGBA2BGR)
+                new_image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
             elif mode == ImageColor.GRAYSCALE:
-                new_image = cv2.cvtColor(image, cv2.COLOR_RGBA2GRAY)
+                new_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
             else:
                 logger.warning(f"Unknown mode: {mode}, defaulting to BGR")
-                new_image = cv2.cvtColor(image, cv2.COLOR_RGBA2BGR)
+                new_image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
             
             cv2.imwrite(f'{name}.png', new_image)
             logger.info(f"Saved image: {name}.png")

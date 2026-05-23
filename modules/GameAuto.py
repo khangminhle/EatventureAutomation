@@ -64,22 +64,15 @@ class GameAuto:
 
 			self.__adb.crop_swipe()
 
-			#main_screenshot = self.__adb.save_screenshot()
-
 
 			print("Auto started!")
 			while(True):
-
-				screenshot = {
-					ImageColor.GRAYSCALE: self.__adb.screenshot(ImageColor.GRAYSCALE),
-					ImageColor.BGR: self.__adb.screenshot()
-				}
 
 				print("\n----- New loop - ",self.__currentState)
 
 				if self.__currentState == GameStates.WATCHING_ADS:
 
-					state = self.__states[GameStates.WATCHING_ADS].start(screenshot)
+					state = self.__states[GameStates.WATCHING_ADS].start()
 
 					if state is True:
 						self.__currentState = GameStates.FOOD_UPGRADE
@@ -92,7 +85,7 @@ class GameAuto:
 					return False
 
 
-				state = self.__states[self.__currentState].start(screenshot)
+				state = self.__states[self.__currentState].start()
 				print('state:', state)
 
 				if state is None:
@@ -103,6 +96,8 @@ class GameAuto:
 
 					case GameStates.FOOD_UPGRADE:
 						#if state is False:
+						#self.__states[GameStates.UNBOX].start()
+						#self.__states[GameStates.SHOP_UPGRADE].start()
 						self.__currentState = GameStates.UNBOX
 
 					case GameStates.SHOP_UPGRADE:
@@ -111,7 +106,7 @@ class GameAuto:
 
 					case GameStates.UNBOX:
 						#if state is False:
-						self.__currentState = state#GameStates.SHOP_UPGRADE
+						self.__currentState = GameStates.SHOP_UPGRADE
 
 					case GameStates.NOTHING_UPGRADE:
 						self.__currentState = state

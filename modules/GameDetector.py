@@ -20,20 +20,11 @@ class GameDetector:
     def __init__(self, adb: ADBController, map_game=GameMode.NORMAL):
         self.__adb = adb
         self.__map = map_game
-        self.__screenshot = None
-
-    def config(self, screenshot):
-
-        self.__screenshot = screenshot
 
     def _is_valid(self):
 
         if not self.__adb:
             print("Chua khoi tao ADB")
-            return False
-
-        if not self.__screenshot:
-            print("screenshot None")
             return False
 
         return True
@@ -79,7 +70,7 @@ class GameDetector:
         try:
             # SCREENSHOT
             if img is None:
-                img = self.__screenshot[mode]#self.__adb.screenshot(mode=mode)
+                img = self.__adb.screenshot(mode=mode)
 
             # TEMPLATE
             template = TemplateConfig.LOADED_TEMPLATES[template_name]
@@ -92,8 +83,8 @@ class GameDetector:
                     return None
 
             # RESIZE TEMPATE
-            template = resize_template(template, self.__adb.scale_x, self.__adb.scale_y)
-
+            #template = resize_image(template, self.__adb.scale_x, self.__adb.scale_y)
+            template = resize_image(template, 0.5, 0.5)
             return find_points_match_template(img, template, **kwargs)
 
         except Exception as e:
@@ -101,6 +92,7 @@ class GameDetector:
             return None
 
     def find_upgrade_food(self):
+
         points = self._match_template_helper('upgrade_food')#['templates', 'button_test.png'])
 
         if points is None:
@@ -112,7 +104,7 @@ class GameDetector:
         if len(points) > 0:
             print('arrows:', points)
 
-        return [(x, y+20) for x, y in points if self._check_valid_points(x, y+20)]
+        return [(x, y+20) for x, y in points if self._check_valid_points(x*2, y*2+20)]
 
     def find_button_coin(self):
 
@@ -137,7 +129,7 @@ class GameDetector:
         template_path = os.path.join(BASE_DIR, 'templates', 'boxes' , '*.png')
         template_names = [ os.path.basename(path) for path in glob.glob(template_path)]
 
-        img = self.__screenshot[ImageColor.GRAYSCALE]#self.__adb.screenshot(mode=ImageColor.GRAYSCALE)
+        img = self.__adb.screenshot(mode=ImageColor.GRAYSCALE)
 
         for template_name in template_names:
         
@@ -153,7 +145,7 @@ class GameDetector:
 
             if len(points) > 0:
 
-                return [(x, y+20) for x, y in points if self._check_valid_points(x, y+20)]
+                return [(x, y+20) for x, y in points if self._check_valid_points(x*2, y*2+20)]
 
         return []
 
