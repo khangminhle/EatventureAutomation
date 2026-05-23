@@ -7,7 +7,7 @@ import cv2
 from modules.ImageProcess import resize_image
 import numpy as np
 from typing import Optional, Tuple
-from .Constants import TemplateConfig
+from .Constants import DEFAULT_PROJECT_DEVICE_HEIGHT, DEFAULT_PROJECT_DEVICE_WIDTH, TemplateConfig
 from .Constants import SwipeConfig
 from .Constants import ImageColor
 
@@ -25,9 +25,11 @@ class ADBController:
         self.__core = None
         self.screen_center_x = 0
         self.screen_center_y = 0
+        self.new_device_scale_x = 1.0
+        self.new_device_scale_y = 1.0
         self.scale_x = 1.0
         self.scale_y = 1.0
-        self.upper_bound_y = 2120
+        #self.upper_bound_y = 2120
         self.max_screen_x = 0
         self.max_screen_y = 0
         self.distanceToSwipe = 0
@@ -80,6 +82,8 @@ class ADBController:
             self.screen_center_x = info.width // 2
             self.screen_center_y = info.height // 2
             self.distanceToSwipe = -self.screen_center_y * SwipeConfig.SWIPE_DISTANCE_RATIO
+            self.new_device_scale_x = info.width / DEFAULT_PROJECT_DEVICE_WIDTH
+            self.new_device_scale_y = info.height / DEFAULT_PROJECT_DEVICE_HEIGHT
             self.scale_x = info.width / TemplateConfig.DEFAULT_TEMPLATE_WIDTH
             self.scale_y = info.height / TemplateConfig.DEFAULT_TEMPLATE_HEIGHT
             self.max_screen_x = info.width
@@ -91,7 +95,7 @@ class ADBController:
             logger.error(f"Failed to configure device: {e}")
             return False
 
-    def click(self, x: int, y: int) -> None:
+    def click(self, x: int, y: int, mode=None) -> None:
         """
         Click at scaled coordinates on device.
         
@@ -100,11 +104,16 @@ class ADBController:
             y: Y coordinate (template-relative)
         """
         if self.__core:
-            scaled_x = int(x * self.scale_x)
-            scaled_y = int(y * self.scale_y)
+            if mode == "scaled":
+                scaled_x = int(x * self.scale_x)
+                scaled_y = int(y * self.scale_y)
+            else:
+                scaled_x = int(x * self.new_device_scale_x)
+                scaled_y = int(y * self.new_device_scale_y)
+
             self.__core.click(scaled_x, scaled_y)
 
-    def swipe(self, fx: int, fy: int, tx: int, ty: int, duration: float = 3.0) -> None:
+    def swipe(self, fx: int, fy: int, tx: int, ty: int, duration: float = 3.0, mode: str = None) -> None:
         """
         Swipe from one point to another on device.
         
@@ -117,11 +126,18 @@ class ADBController:
         """
         if not self.__core:
             return
-        
-        fx = int(fx * self.scale_x)
-        fy = int(fy * self.scale_y)
-        tx = int(tx * self.scale_x)
-        ty = int(ty * self.scale_y)
+
+        if mode == "scaled":
+            fx = int(fx * self.scale_x)
+            fy = int(fy * self.scale_y)
+            tx = int(tx * self.scale_x)
+            ty = int(ty * self.scale_y)
+        else:
+            fx = int(fx * self.new_device_scale_x)
+            fy = int(fy * self.new_device_scale_y)
+            tx = int(tx * self.new_device_scale_x)
+            ty = int(ty * self.new_device_scale_y)
+
         self.__core.swipe(fx, fy, tx, ty, duration)
 
     def __screencap(self) -> Optional[np.ndarray]:
@@ -204,10 +220,10 @@ class ADBController:
             
             # Scale for current device resolution
 
-            left *= self.scale_x
-            top *= self.scale_y
-            right *= self.scale_x
-            bottom *= self.scale_y
+            left *= self.new_device_scale_x
+            top *= self.new_device_scale_y
+            right *= self.new_device_scale_x
+            bottom *= self.new_device_scale_y
 
             screenshot = np.array(screenshot)
 
@@ -236,7 +252,11 @@ class ADBController:
             #screenshot = self.__screencap()
             screenshot = self.__core.screenshot()
 
-            screenshot = resize_image(np.array(screenshot), 0.5, 0.5)
+            if (1/self.scale_x) > 1:
+                print("THIET BI KHONG DU DO PHAN GIAI DE CHAY BOT")
+                return None
+
+            screenshot = resize_image(np.array(screenshot), 1/self.scale_x, 1/self.scale_y)
 
             if screenshot is None:
                 return None
@@ -326,30 +346,38 @@ class ADBController:
 
         try:
             # Top region
-            left = SwipeConfig.SWIPE_TOP_REGION['left']
-            top = SwipeConfig.SWIPE_TOP_REGION['top']
-            right = SwipeConfig.SWIPE_TOP_REGION['right']
-            bottom = SwipeConfig.SWIPE_TOP_REGION['bottom']
+            left = SwipeConfig.SWIPE_TOP_REGION['left'] * self.new_device_scale_x
+            top = SwipeConfig.SWIPE_TOP_REGION['top'] * self.new_device_scale_y
+            right = SwipeConfig.SWIPE_TOP_REGION['right'] * self.new_device_scale_x
+            bottom = SwipeConfig.SWIPE_TOP_REGION['bottom'] * self.new_device_scale_y
 
             # Bottom region
-            new_top = SwipeConfig.SWIPE_BOTTOM_REGION['top']
-            new_bottom = SwipeConfig.SWIPE_BOTTOM_REGION['bottom']
+            new_top = SwipeConfig.SWIPE_BOTTOM_REGION['top'] * self.new_device_scale_y
+            new_bottom = SwipeConfig.SWIPE_BOTTOM_REGION['bottom'] * self.new_device_scale_y
 
             cropped_img = self.crop_screen((left, top, right, bottom))#screenshot.crop((left, top, right, bottom))
+            
+            crops = {}
 
             if cropped_img is not None:
-                self.save_image(cropped_img, name="check_swipe")
+                crops['top'] = cropped_img
+                #self.save_image(cropped_img, name="check_swipe")
             else:
                 print("Loi crop swipe top")
                 return None
 
             cropped_img = self.crop_screen((left, new_top, right, new_bottom))#screenshot.crop((left, new_top, right, new_bottom))
-
+        
             if cropped_img is not None:
-                self.save_image(cropped_img, name="check_swipe_bottom")
+                crops['bottom'] = cropped_img
+                #self.save_image(cropped_img, name="check_swipe_bottom")
             else:
                 print("Loi crop swipe bottom")
                 return None
 
+            if len(crops) == 2:
+                return crops
+
         except Exception as e:
             print("Error ADB - crop_swipe:", e)
+            return None

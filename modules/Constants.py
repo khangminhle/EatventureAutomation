@@ -4,6 +4,8 @@ import glob
 import cv2
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DEFAULT_PROJECT_DEVICE_WIDTH = 1080
+DEFAULT_PROJECT_DEVICE_HEIGHT = 2340
 
 class GameStates(Enum):
     FOOD_UPGRADE = auto() 
@@ -24,7 +26,7 @@ class ImageColor(Enum):
     BGR = auto()
 
 class UICoordinates:
-    """UI element coordinates (based on 1080x2340 resolution, auto-scaled by ADB)"""
+    """UI element coordinates (based on 540x1170 resolution, auto-scaled by ADB)"""
     
     # Buttons
     FINISH_BTN = {"x": 113, "y": 2200}
@@ -56,8 +58,8 @@ class TemplateConfig:
     """Template matching configurations"""
 
     # Screen resolution defaults
-    DEFAULT_TEMPLATE_WIDTH = 1080
-    DEFAULT_TEMPLATE_HEIGHT = 2340
+    DEFAULT_TEMPLATE_WIDTH = 540#1080
+    DEFAULT_TEMPLATE_HEIGHT = 1170#2340
 
     LOADED_TEMPLATES = {}
     
@@ -96,6 +98,8 @@ class TemplateConfig:
 
                 for file_path in file_list:
                     img = cv2.imread(file_path)
+                    # RESIZE TEMPLATE 540x1170
+                    img = cv2.resize(img, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
 
                     file_name = os.path.basename(file_path)
 
@@ -105,6 +109,8 @@ class TemplateConfig:
                         print("Da load template:", file_path)
             else:
                 img = cv2.imread(template_path)
+                # RESIZE TEMPLATE 540x1170
+                img = cv2.resize(img, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_AREA)
 
                 if img is not None:
                     cls.LOADED_TEMPLATES[name] = img

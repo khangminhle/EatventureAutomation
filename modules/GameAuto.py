@@ -62,7 +62,9 @@ class GameAuto:
 				print("Khong the start auto")
 				return False
 
-			self.__adb.crop_swipe()
+			# Initially crop TOP and BOTTOM 
+
+			self.__detector.setCrops(self.__adb.crop_swipe())
 
 
 			print("Auto started!")

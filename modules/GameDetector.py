@@ -20,6 +20,7 @@ class GameDetector:
     def __init__(self, adb: ADBController, map_game=GameMode.NORMAL):
         self.__adb = adb
         self.__map = map_game
+        self.__crops = None
 
     def _is_valid(self):
 
@@ -28,6 +29,14 @@ class GameDetector:
             return False
 
         return True
+
+    def setCrops(self, crops):
+
+        if not crops:
+            print("Khong luu duoc crops")
+            return False 
+
+        self.__crops = crops
 
     def check_nothing_upgrade(self):
 
@@ -45,6 +54,9 @@ class GameDetector:
 
         if x < 0 or y < 0:
             return False
+
+        x = (x * self.__adb.scale_x) / self.__adb.new_device_scale_x
+        y = (y * self.__adb.scale_y) / self.__adb.new_device_scale_y
 
         if x > self.__adb.max_screen_x or y > self.__adb.max_screen_y:
             return False
@@ -84,7 +96,7 @@ class GameDetector:
 
             # RESIZE TEMPATE
             #template = resize_image(template, self.__adb.scale_x, self.__adb.scale_y)
-            template = resize_image(template, 0.5, 0.5)
+            #template = resize_image(template, 0.5, 0.5)
             return find_points_match_template(img, template, **kwargs)
 
         except Exception as e:
@@ -104,7 +116,7 @@ class GameDetector:
         if len(points) > 0:
             print('arrows:', points)
 
-        return [(x, y+20) for x, y in points if self._check_valid_points(x*2, y*2+20)]
+        return [(x, y+20) for x, y in points if self._check_valid_points(x, y+20)]
 
     def find_button_coin(self):
 
@@ -145,7 +157,7 @@ class GameDetector:
 
             if len(points) > 0:
 
-                return [(x, y+20) for x, y in points if self._check_valid_points(x*2, y*2+20)]
+                return [(x, y+20) for x, y in points if self._check_valid_points(x, y+20)]
 
         return []
 
@@ -255,20 +267,20 @@ class GameDetector:
 
     def check_max_swipe(self, mode="top"):
         # Top region
-        left = SwipeConfig.SWIPE_TOP_REGION['left'] * self.__adb.scale_x
-        top = SwipeConfig.SWIPE_TOP_REGION['top'] * self.__adb.scale_y
-        right = SwipeConfig.SWIPE_TOP_REGION['right'] * self.__adb.scale_x
-        bottom = SwipeConfig.SWIPE_TOP_REGION['bottom'] * self.__adb.scale_y
+        left = SwipeConfig.SWIPE_TOP_REGION['left']
+        top = SwipeConfig.SWIPE_TOP_REGION['top']
+        right = SwipeConfig.SWIPE_TOP_REGION['right']
+        bottom = SwipeConfig.SWIPE_TOP_REGION['bottom']
 
         if mode == "top":
-            img1_path = os.path.join(BASE_DIR, 'check_swipe.png')
-            img1 = cv2.imread(img1_path)
+            #img1_path = os.path.join(BASE_DIR, 'check_swipe.png')
+            img1 = self.__crops["top"]#cv2.imread(img1_path)
         else:
             # Bottom region
-            top = SwipeConfig.SWIPE_BOTTOM_REGION['top'] * self.__adb.scale_y
-            bottom = SwipeConfig.SWIPE_BOTTOM_REGION['bottom'] * self.__adb.scale_y
-            img1_path = os.path.join(BASE_DIR, 'check_swipe_bottom.png')
-            img1 = cv2.imread(img1_path)
+            top = SwipeConfig.SWIPE_BOTTOM_REGION['top']
+            bottom = SwipeConfig.SWIPE_BOTTOM_REGION['bottom']
+            #img1_path = os.path.join(BASE_DIR, 'check_swipe_bottom.png')
+            img1 = self.__crops["bottom"]#cv2.imread(img1_path)
 
 
         if img1 is None:
@@ -279,6 +291,7 @@ class GameDetector:
 
         if cropped_img is not None:
             img2 = cv2.cvtColor(cropped_img, cv2.COLOR_RGBA2BGR)
+            img1 = cv2.cvtColor(img1, cv2.COLOR_RGBA2BGR)
 
             if check_same_images(img1, img2):
                 return True

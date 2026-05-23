@@ -87,7 +87,7 @@ def find_points_match_template(
             thresh_value = 150
             _, img = cv2.threshold(img, thresh_value, 255, cv2.THRESH_BINARY_INV)
 
-            cv2.imwrite("test_threseh.png", img)
+            #cv2.imwrite("test_threseh.png", img)
             _, template = cv2.threshold(template, thresh_value, 255, cv2.THRESH_BINARY_INV)
         
         # Perform template matching
