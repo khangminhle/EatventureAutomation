@@ -24,7 +24,7 @@ Before installation, please ensure your system meets below requirements:
 
 ## 📦 Full detailed installation
 
-Open your terminal or Command Prompt on Windows) and run below lines:
+Open your terminal or Command Prompt on Windows and run below lines:
 
 ### 1. Clone project
 ```
