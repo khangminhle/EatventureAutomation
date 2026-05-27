@@ -59,3 +59,13 @@ python3 auto.py
 
 ### 💡 Contribution
 * ** If you have questions, feel free to contact me: 15520339@gm.uit.edu.vn
+
+### 🤖 Demo
+
+
+https://github.com/user-attachments/assets/43feb928-d248-44d2-b629-6aad6f3c6360
+
+
+
+
+
