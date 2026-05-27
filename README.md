@@ -49,6 +49,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 ### 4. Run the program
+Before you run this code, just jump straight to the gameplay screen.
 ```
 python3 auto.py
 ```
