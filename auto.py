@@ -10,8 +10,8 @@ import cv2
 #scrcpy -S --window-title "eatventure_screen" --max-fps 30
 
 if __name__ == '__main__':
-    #auto = GameAuto()
-    #auto.start()
+    auto = GameAuto()
+    auto.start()
     
     '''
     adb = ADBController()
