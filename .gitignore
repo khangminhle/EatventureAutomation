@@ -2,8 +2,10 @@
 *
 
 # 2. Không bỏ qua (giữ lại) file auto.py
-#!auto.py
+!auto.py
 
 # 3. Không bỏ qua các thư mục cụ thể và nội dung bên trong chúng
-#!modules/
-#!templates/
+!modules/
+!templates/
+
+!requirements.txt
