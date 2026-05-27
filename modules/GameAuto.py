@@ -67,6 +67,7 @@ class GameAuto:
 			self.__detector.setCrops(self.__adb.crop_swipe())
 
 
+
 			print("Auto started!")
 			while(True):
 

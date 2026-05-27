@@ -105,7 +105,7 @@ class GameDetector:
 
     def find_upgrade_food(self):
 
-        points = self._match_template_helper('upgrade_food')#['templates', 'button_test.png'])
+        points = self._match_template_helper('upgrade_food', binary=True)#['templates', 'button_test.png'])
 
         if points is None:
             return []
@@ -266,6 +266,29 @@ class GameDetector:
         return False
 
     def check_max_swipe(self, mode="top"):
+
+        new_drops = self.__adb.crop_swipe()
+
+        if new_drops is None or self.__crops is None:
+            return None
+
+        if mode == "top":
+            img1 = new_drops["top"]
+            img2 = self.__crops["top"]
+        else:
+            img1 = new_drops["bottom"]
+            img2 = self.__crops["bottom"]
+
+        img1 = cv2.cvtColor(img1, cv2.COLOR_RGBA2BGR)
+        img2 = cv2.cvtColor(img2, cv2.COLOR_RGBA2BGR)
+
+        if check_same_images(img1, img2):
+            return True
+
+        return False
+
+
+        '''
         # Top region
         left = SwipeConfig.SWIPE_TOP_REGION['left']
         top = SwipeConfig.SWIPE_TOP_REGION['top']
@@ -286,8 +309,8 @@ class GameDetector:
         if img1 is None:
             print("Khong tim thay check swipe png")
             return None
-
-        cropped_img = self.__adb.crop_screen((left, top, right, bottom))
+        '''
+        #cropped_img = self.__adb.crop_screen((left, top, right, bottom))
 
         if cropped_img is not None:
             img2 = cv2.cvtColor(cropped_img, cv2.COLOR_RGBA2BGR)

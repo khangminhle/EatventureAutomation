@@ -2,7 +2,6 @@
 
 import logging
 import adbutils
-import subprocess
 import cv2
 from modules.ImageProcess import resize_image
 import numpy as np
@@ -139,49 +138,6 @@ class ADBController:
             ty = int(ty * self.new_device_scale_y)
 
         self.__core.swipe(fx, fy, tx, ty, duration)
-
-    def __screencap(self) -> Optional[np.ndarray]:
-        """
-        Capture screen from device using optimized screencap.
-        
-        Returns:
-            RGBA image as numpy array, or None on error
-        """
-        if not self.__core:
-            logger.error("Device not connected")
-            return None
-        
-        try:
-            cmd = ["adb", "exec-out", "screencap"]
-            process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.DEVNULL
-            )
-            stdout, _ = process.communicate()
-            
-            # Parse header (12 bytes: width, height, format)
-            width = int.from_bytes(stdout[0:4], byteorder='little')
-            height = int.from_bytes(stdout[4:8], byteorder='little')
-            expected_size = width * height * 4
-            
-            if len(stdout) < expected_size + 12:
-                logger.warning("Incomplete screenshot data")
-                return None
-            
-            # Extract frame data
-            frame = np.frombuffer(
-                stdout,
-                dtype=np.uint8,
-                count=expected_size,
-                offset=12
-            )
-            frame = frame.reshape((height, width, 4))
-            
-            return frame
-        except Exception as e:
-            logger.error(f"Screenshot error: {e}")
-            return None
 
     def crop_screen(
         self,
@@ -346,14 +302,14 @@ class ADBController:
 
         try:
             # Top region
-            left = SwipeConfig.SWIPE_TOP_REGION['left'] * self.new_device_scale_x
-            top = SwipeConfig.SWIPE_TOP_REGION['top'] * self.new_device_scale_y
-            right = SwipeConfig.SWIPE_TOP_REGION['right'] * self.new_device_scale_x
-            bottom = SwipeConfig.SWIPE_TOP_REGION['bottom'] * self.new_device_scale_y
+            left = SwipeConfig.SWIPE_TOP_REGION['left'] 
+            top = SwipeConfig.SWIPE_TOP_REGION['top'] 
+            right = SwipeConfig.SWIPE_TOP_REGION['right']
+            bottom = SwipeConfig.SWIPE_TOP_REGION['bottom'] 
 
             # Bottom region
-            new_top = SwipeConfig.SWIPE_BOTTOM_REGION['top'] * self.new_device_scale_y
-            new_bottom = SwipeConfig.SWIPE_BOTTOM_REGION['bottom'] * self.new_device_scale_y
+            new_top = SwipeConfig.SWIPE_BOTTOM_REGION['top'] 
+            new_bottom = SwipeConfig.SWIPE_BOTTOM_REGION['bottom']
 
             cropped_img = self.crop_screen((left, top, right, bottom))#screenshot.crop((left, top, right, bottom))
             
